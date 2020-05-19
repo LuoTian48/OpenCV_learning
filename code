@@ -1,0 +1,125 @@
+'''
+In this class we will learn Fourier Transform in Python.
+本次实验课程学习用Python来做傅立叶变换的应用。
+'''
+import numpy as np
+import matplotlib.pyplot as plt
+import pylab
+import cv2
+T = 1 # the periodic of the sin. is 1 second
+N = 100
+t = np.linspace(0, T, 100)
+w1 = 3*np.pi/T
+w2 = 8*np.pi/T
+wt = 49*2*np.pi/T # ft = 100 will cause alias
+# wt = 100*2*np.pi/T
+#f = np.sin(w1*t) + np.sin(w2*t) + np.sin(wt*t)
+# f  = np.sin(wt*t)
+# f=np.cos(w1*t)+np.sin(2*w2*t)+np.tan(wt*t)+1
+f=6*np.cos(w1*t)*np.sin(w2*t)+2
+ff = np.fft.fft(f, N)
+fm = np.abs(ff)
+fa = np.angle(ff, deg=True)
+fig, axs = plt.subplots(1,3)
+axs[0].plot(t, f)
+axs[0].set_title('signal')
+axs[1].stem(np.abs(ff))
+axs[1].set_title('mag. of freq.')
+axs[2].stem(fa)
+axs[2].set_title('angle of freq.')
+plt.show()
+'''
+2 - 2d Image Gaussian blur. 观察利用空间卷积和频域乘积对同一幅画面的作用。
+'''
+from scipy import fftpack
+
+# Here change to your own image's path
+# file_name = "/Users/LT/Desktop/IDE/preview.jpg"
+# img = cv2.imread(file_name, 0 )
+# fig, axes = plt.subplots(1, 3)
+# axes[0].imshow(img, cmap ='gray')
+# axes[0].set_title('source')
+
+# img_cv = ndimage.gaussian_filter(img, sigma=2)
+# axes[1].imshow(img_cv, cmap='gray')
+# axes[1].set_title('convolve gaussian kernel')
+#
+# #get the gaussian kernel
+# w  = 100
+# h  = 100
+#
+# in_mask = np.zeros((h, w), dtype=np.float32)
+# in_mask[int(h/2), int(w/2)] = 1
+# img_kernel = ndimage.gaussian_filter(in_mask, sigma=2)
+#
+# kernel = img_kernel[50-6:50+6, 50-6:50+6]
+#
+# # Padded fourier transform, with the same shape as the image
+# # We use :func:`scipy.signal.fftpack.fft2` to have a 2D FFT
+# kernel_ft = fftpack.fft2(kernel, shape=img.shape[:2], axes=(0, 1))
+#
+# #manual pad zeros, same results.
+# kernel_pad = np.zeros_like(img,dtype='float')
+# kh, kw = kernel.shape[:2]  #img.shape[:2] 取彩色图片的高、宽
+# kernel_pad[:kh, :kw]= kernel
+# kernel_pad_ft = fftpack.fft2(kernel_pad,  axes=(0,1))
+# fig1,axs = plt.subplots(1,3)
+# axs[0].imshow(np.abs(pylab.fftshift(kernel_ft)))
+# axs[1].imshow(np.abs(pylab.fftshift(kernel_pad_ft)))
+# axs[2].imshow(np.abs(kernel_pad_ft-kernel_ft))
+# plt.show()
+#
+# # convolve
+# img_ft = fftpack.fft2(img, axes=(0, 1))
+# img2_ft = kernel_ft * img_ft
+# img2 = fftpack.ifft2(img2_ft, axes=(0, 1)).real
+# # # clip values to range
+# #img2 = np.clip(img2, 0, 1)
+#
+# axes[2].imshow(img2, cmap='gray')
+# axes[2].set_title('blur via Gaussian filter')
+# #plt.show()
+
+'''
+实验任务2- 仿照上面高斯滤波的例子，尝试自己编写 ndimage.gaussian_laplace 滤波器与卷积的对比。
+
+'''
+from scipy import ndimage
+file_name = "/Users/LT/Desktop/IDE/preview.jpg"
+img = cv2.imread(file_name, 0 )
+img=(img-np.min(img))/(np.max(img)-np.min(img))
+fig, axes = plt.subplots(1, 3)
+axes[0].imshow(img, cmap ='gray')
+axes[0].set_title('source')
+
+img_cv = ndimage.gaussian_laplace(img, sigma=2)
+img_cv=(img_cv-np.min(img_cv))/(np.max(img_cv)-np.min(img_cv))
+axes[1].imshow(img_cv, cmap='gray')
+axes[1].set_title('conv. gauss_laplace')
+w=100
+h=100
+in_mask = np.zeros((h, w), dtype=np.float32)
+in_mask[int(h/2), int(w/2)] = 1
+img_kernel = ndimage.gaussian_laplace(in_mask, sigma=2)
+kernel = img_kernel[50-6:50+6, 50-6:50+6]
+# plt.imshow(kernel)
+kernel_ft = fftpack.fft2(kernel, shape=img.shape[:2], axes=(0, 1))
+kernel_pad = np.zeros_like(img,dtype='float')
+# kh, kw = kernel.shape[:2]  #img.shape[:2] 取彩色图片的高、宽
+# kernel_pad[:kh, :kw]= kernel
+# kernel_pad_ft = fftpack.fft2(kernel_pad,  axes=(0,1))
+# fig1,axs = plt.subplots(1,3)
+# axs[0].imshow(np.abs(pylab.fftshift(kernel_ft)))
+# axs[1].imshow(np.abs(pylab.fftshift(kernel_pad_ft)))
+# axs[2].imshow(np.abs(kernel_pad_ft-kernel_ft))
+# plt.show()
+img_ft = fftpack.fft2(img, axes=(0, 1))
+img2_ft = kernel_ft * img_ft
+img2 = fftpack.ifft2(img2_ft, axes=(0, 1)).real
+img2=(img2-np.min(img2))/(np.max(img2)-np.min(img2))
+# # # clip values to range
+# #img2 = np.clip(img2, 0, 1)
+#
+axes[2].imshow(img2, cmap='gray')
+axes[2].set_title('FFT Gauss laplace')
+plt.show()
